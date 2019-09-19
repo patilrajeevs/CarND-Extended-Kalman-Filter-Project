@@ -58,54 +58,9 @@ int main() {
           // j[1] is the data JSON object
           string sensor_measurement = j[1]["sensor_measurement"];
           
-          MeasurementPackage meas_package;
-          std::istringstream iss(sensor_measurement);
-          
-          long long timestamp;
-
-          // reads first element from the current line
-          string sensor_type;
-          iss >> sensor_type;
-
-          if (sensor_type.compare("L") == 0) {
-            meas_package.sensor_type_ = MeasurementPackage::LASER;
-            meas_package.raw_measurements_ = VectorXd(2);
-            float px;
-            float py;
-            iss >> px;
-            iss >> py;
-            meas_package.raw_measurements_ << px, py;
-            iss >> timestamp;
-            meas_package.timestamp_ = timestamp;
-          } else if (sensor_type.compare("R") == 0) {
-            meas_package.sensor_type_ = MeasurementPackage::RADAR;
-            meas_package.raw_measurements_ = VectorXd(3);
-            float ro;
-            float theta;
-            float ro_dot;
-            iss >> ro;
-            iss >> theta;
-            iss >> ro_dot;
-            meas_package.raw_measurements_ << ro,theta, ro_dot;
-            iss >> timestamp;
-            meas_package.timestamp_ = timestamp;
-          }
-
-          float x_gt;
-          float y_gt;
-          float vx_gt;
-          float vy_gt;
-          iss >> x_gt;
-          iss >> y_gt;
-          iss >> vx_gt;
-          iss >> vy_gt;
-
-          VectorXd gt_values(4);
-          gt_values(0) = x_gt;
-          gt_values(1) = y_gt; 
-          gt_values(2) = vx_gt;
-          gt_values(3) = vy_gt;
-          ground_truth.push_back(gt_values);
+          MeasurementPackage meas_package(sensor_measurement);
+          //redundant variable introduced for passing to the simulator
+          ground_truth.push_back(meas_package.gt_values);
           
           // Call ProcessMeasurement(meas_package) for Kalman filter
           fusionEKF.ProcessMeasurement(meas_package);       
@@ -128,7 +83,6 @@ int main() {
           estimations.push_back(estimate);
 
           VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
-
           json msgJson;
           msgJson["estimate_x"] = p_x;
           msgJson["estimate_y"] = p_y;
